@@ -12,6 +12,12 @@ import SessionStatus from '@/components/sessions/SessionStatus';
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { ArrowLeft, Calendar, Clock, MoreVertical, CheckCircle2, AlertCircle, XCircle, AlertTriangle, Trash2 } from 'lucide-react';
+
+const typeColors = {
+  Rehearsal: 'bg-[#EFF6FF] text-[#2563EB]',
+  Service: 'bg-[#FAF5FF] text-[#9333EA]',
+};
 
 export default function SessionDetailPage() {
   const { id } = useParams();
@@ -50,98 +56,139 @@ export default function SessionDetailPage() {
   if (loadingSession) {
     return (
       <div className="animate-pulse space-y-6">
-        <div className="h-8 w-64 bg-gray-200 rounded-lg" />
-        <div className="bg-white rounded-xl h-48" />
+        <div className="h-4 w-32 bg-gray-200 rounded mb-8" />
+        <div className="bg-white rounded-2xl h-48 border border-gray-100" />
+        <div className="grid grid-cols-3 gap-6">
+          <div className="bg-white rounded-2xl h-24 border border-gray-100" />
+          <div className="bg-white rounded-2xl h-24 border border-gray-100" />
+          <div className="bg-white rounded-2xl h-24 border border-gray-100" />
+        </div>
       </div>
     );
   }
 
   if (!session) {
-    return <div className="text-center text-gray-400 py-12">Session not found.</div>;
+    return (
+      <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center shadow-sm">
+        <p className="text-gray-500 font-medium">Session not found.</p>
+      </div>
+    );
   }
 
   return (
     <>
       {/* Back */}
-      <Link href="/sessions" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-[#2563EB] mb-6 transition-colors">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      <Link href="/sessions" className="inline-flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-[#2563EB] mb-6 transition-colors">
+        <ArrowLeft size={16} />
         Back to Sessions
       </Link>
 
-      {/* Session Header */}
-      <div className="bg-white rounded-xl border border-gray-100 p-6 mb-6">
-        <div className="flex items-start justify-between">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-xl font-bold text-gray-900">{session.name}</h1>
-              <SessionStatus isClosed={session.is_closed} />
-            </div>
-            <div className="flex items-center gap-4 text-sm text-gray-500">
-              <span>{formatDate(session.session_date)}</span>
-              <span>{formatTime(session.start_time)}</span>
-              <span className="text-xs bg-gray-50 px-2 py-0.5 rounded">{session.session_type}</span>
-            </div>
-            {session.created_by_name && (
-              <p className="text-xs text-gray-400 mt-2">Created by {session.created_by_name}</p>
-            )}
+      {/* Session Header Card */}
+      <div className="bg-white rounded-2xl border border-gray-100 p-8 mb-8 relative overflow-hidden z-0 shadow-sm flex flex-col md:flex-row md:items-start justify-between gap-6">
+        <div className={`absolute -top-12 -right-12 w-48 h-48 rounded-full -z-10 ${session.session_type === 'Service' ? 'bg-[#FAF5FF]' : 'bg-[#EFF6FF]'}`} />
+        
+        <div>
+          <div className="flex items-center gap-4 mb-3">
+            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">{session.name}</h1>
+            <SessionStatus isClosed={session.is_closed} />
+          </div>
+          
+          <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-gray-500 mt-4">
+            <span className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
+              <Calendar size={14} className="text-gray-400" />
+              {formatDate(session.session_date)}
+            </span>
+            <span className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
+              <Clock size={14} className="text-gray-400" />
+              {formatTime(session.start_time)}
+            </span>
+            <span className={`px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wide ${typeColors[session.session_type] || 'bg-gray-100 text-gray-600'}`}>
+              {session.session_type}
+            </span>
           </div>
 
-          <div className="flex gap-3">
-            {!session.is_closed && (
-              <>
-                <Link href={`/sessions/${id}/checkin`} className="px-5 py-2.5 bg-[#2563EB] text-white text-sm font-medium rounded-lg hover:bg-[#1E3A8A] transition-colors">
-                  Take Attendance
-                </Link>
-                <button onClick={handleClose} disabled={closing} className="px-4 py-2.5 border border-gray-200 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50">
-                  {closing ? 'Closing...' : 'Close Session'}
-                </button>
-              </>
-            )}
-          </div>
+          {session.created_by_name && (
+            <p className="text-[11px] text-gray-400 mt-4 font-medium uppercase tracking-wider">
+              Created by {session.created_by_name}
+            </p>
+          )}
+        </div>
+
+        <div className="flex items-center gap-3">
+          {!session.is_closed && (
+            <>
+              <button 
+                onClick={handleClose} 
+                disabled={closing} 
+                className="px-5 py-2.5 border border-red-100 bg-red-50 text-sm font-semibold text-red-600 rounded-xl hover:bg-red-100 transition-colors disabled:opacity-50 shadow-sm"
+              >
+                {closing ? 'Closing...' : 'Close Session'}
+              </button>
+              <Link 
+                href={`/sessions/${id}/checkin`} 
+                className="px-6 py-2.5 bg-[#2563EB] text-white text-sm font-semibold rounded-xl hover:bg-[#1E3A8A] transition-all shadow-sm"
+              >
+                Take Attendance
+              </Link>
+            </>
+          )}
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="bg-white rounded-xl border border-gray-100 p-4 text-center">
-          <p className="text-2xl font-bold text-[#1E3A8A]">{checkedInCount}</p>
-          <p className="text-xs text-gray-400 mt-1">Checked In</p>
+      {/* Stats row */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+        <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm relative overflow-hidden z-0">
+          <div className="absolute -top-4 -right-4 w-20 h-20 bg-[#EFF6FF] rounded-full -z-10" />
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Checked In</p>
+          <p className="text-4xl font-bold text-[#1E3A8A]">{checkedInCount}</p>
         </div>
-        <div className="bg-white rounded-xl border border-gray-100 p-4 text-center">
-          <p className="text-2xl font-bold text-green-600">
+        
+        <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm relative overflow-hidden z-0">
+          <div className="absolute -top-4 -right-4 w-20 h-20 bg-[#F0FDF4] rounded-full -z-10" />
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">On Time</p>
+          <p className="text-4xl font-bold text-green-600">
             {attendanceList.filter(a => a.punctuality_status === 'Punctual').length}
           </p>
-          <p className="text-xs text-gray-400 mt-1">On Time</p>
         </div>
-        <div className="bg-white rounded-xl border border-gray-100 p-4 text-center">
-          <p className="text-2xl font-bold text-amber-500">
+
+        <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm relative overflow-hidden z-0">
+          <div className="absolute -top-4 -right-4 w-20 h-20 bg-[#FFF7ED] rounded-full -z-10" />
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Late</p>
+          <p className="text-4xl font-bold text-amber-500">
             {attendanceList.filter(a => a.punctuality_status !== 'Punctual').length}
           </p>
-          <p className="text-xs text-gray-400 mt-1">Late</p>
         </div>
       </div>
 
       {/* Attendance List */}
-      <div className="bg-white rounded-xl border border-gray-100 p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base font-semibold text-gray-900">Attendance ({checkedInCount})</h2>
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col min-h-[400px]">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between p-6 border-b border-gray-100 bg-gray-50/50">
+          <h2 className="text-lg font-bold text-gray-900 tracking-tight">Attendance Log</h2>
           {isSuperAdmin && (
-            <span className="text-[10px] font-bold text-purple-600 bg-purple-50 px-2 py-1 rounded-md border border-purple-100">
-              Super Admin — Hover rows to edit
+            <span className="text-[10px] font-bold text-purple-600 bg-purple-50 px-3 py-1.5 rounded-full uppercase tracking-wide border border-purple-100 mt-3 sm:mt-0">
+              Super Admin Mode
             </span>
           )}
         </div>
-        {loadingAtt ? (
-          <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-12 bg-gray-50 rounded-lg animate-pulse" />)}</div>
-        ) : attendanceList.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-8">No check-ins yet.</p>
-        ) : (
-          <div className="divide-y divide-gray-50">
-            {attendanceList.map((a) => (
-              <AttendanceRow key={a.id} record={a} isSuperAdmin={isSuperAdmin} />
-            ))}
-          </div>
-        )}
+        
+        <div className="flex-1">
+          {loadingAtt ? (
+            <div className="p-6 flex items-center justify-center h-full">
+              <div className="animate-spin w-8 h-8 border-4 border-[#2563EB] border-t-transparent rounded-full" />
+            </div>
+          ) : attendanceList.length === 0 ? (
+            <div className="p-12 text-center flex flex-col items-center justify-center h-full text-gray-400">
+              <p className="font-medium text-gray-500 mb-1">No check-ins yet.</p>
+              <p className="text-sm">Click 'Take Attendance' to start.</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-50">
+              {attendanceList.map((a) => (
+                <AttendanceRow key={a.id} record={a} isSuperAdmin={isSuperAdmin} />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </>
   );
@@ -167,11 +214,11 @@ function AttendanceRow({ record, isSuperAdmin }) {
   }, []);
 
   const statusOptions = [
-    { value: 'Punctual', label: 'Punctual', color: 'text-green-600', bg: 'hover:bg-green-50', icon: <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> },
-    { value: 'Late', label: 'Late', color: 'text-amber-600', bg: 'hover:bg-amber-50', icon: <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> },
-    { value: 'Very Late', label: 'Very Late', color: 'text-orange-600', bg: 'hover:bg-orange-50', icon: <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> },
-    { value: 'Absent', label: 'Absent', color: 'text-red-600', bg: 'hover:bg-red-50', icon: <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> },
-    { value: 'Excused', label: 'Excused', color: 'text-purple-600', bg: 'hover:bg-purple-50', icon: <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> },
+    { value: 'Punctual', label: 'Punctual', color: 'text-green-600', bg: 'hover:bg-green-50', icon: <CheckCircle2 size={14} /> },
+    { value: 'Late', label: 'Late', color: 'text-amber-600', bg: 'hover:bg-amber-50', icon: <AlertCircle size={14} /> },
+    { value: 'Very Late', label: 'Very Late', color: 'text-orange-600', bg: 'hover:bg-orange-50', icon: <AlertTriangle size={14} /> },
+    { value: 'Absent', label: 'Absent', color: 'text-red-600', bg: 'hover:bg-red-50', icon: <XCircle size={14} /> },
+    { value: 'Excused', label: 'Excused', color: 'text-purple-600', bg: 'hover:bg-purple-50', icon: <CheckCircle2 size={14} className="opacity-50" /> },
   ];
 
   const handleOverride = async (newStatus) => {
@@ -212,23 +259,27 @@ function AttendanceRow({ record, isSuperAdmin }) {
   };
 
   return (
-    <div className={`flex items-center justify-between py-3 group ${updating ? 'opacity-50 pointer-events-none' : ''}`}>
-      <div className="flex items-center gap-3">
-        <div className="w-9 h-9 rounded-full bg-[#EFF6FF] flex items-center justify-center text-[#2563EB] text-xs font-bold">
-          {a.member_name?.split(' ').map(n => n[0]).join('').slice(0, 2)}
+    <div className={`flex flex-col sm:flex-row sm:items-center justify-between p-5 group hover:bg-gray-50/80 transition-colors ${updating ? 'opacity-50 pointer-events-none' : ''}`}>
+      <div className="flex items-center gap-4 mb-3 sm:mb-0">
+        <div className="w-10 h-10 rounded-full bg-[#1E293B] flex items-center justify-center text-white text-sm font-bold shadow-sm">
+          {a.member_name?.split(' ').map(n => n[0]).join('').slice(0, 2) || '?'}
         </div>
         <div>
-          <p className="text-sm font-medium text-gray-900">{a.member_name}</p>
-          <p className="text-xs text-gray-400">{a.member_section}</p>
+          <p className="text-base font-bold text-gray-900 line-clamp-1">{a.member_name}</p>
+          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wide bg-gray-100 px-2 py-0.5 rounded mt-1 inline-block">
+            {a.member_section}
+          </span>
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
-        <div className="text-right">
-          <p className={`text-sm font-semibold ${getPunctualityColor(a.punctuality_status)}`}>
+      <div className="flex items-center justify-between sm:justify-end gap-6 sm:w-auto w-full">
+        <div className="text-left sm:text-right">
+          <p className={`text-sm font-bold px-3 py-1 rounded-lg inline-block ${a.punctuality_status === 'Punctual' ? 'bg-green-50 text-green-600' : a.punctuality_status.includes('Late') ? 'bg-amber-50 text-amber-600' : 'bg-red-50 text-red-600'}`}>
             {updating ? 'Updating...' : a.punctuality_status}
           </p>
-          <p className="text-xs text-gray-400">+{a.delay_minutes} min</p>
+          {a.delay_minutes > 0 && (
+            <p className="text-[11px] font-medium text-gray-400 mt-1 sm:text-right text-center">+{a.delay_minutes} min late</p>
+          )}
         </div>
 
         {/* Super Admin Actions */}
@@ -236,38 +287,36 @@ function AttendanceRow({ record, isSuperAdmin }) {
           <div className="relative" ref={menuRef}>
             <button
               onClick={() => setShowMenu((prev) => !prev)}
-              className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors opacity-0 group-hover:opacity-100"
+              className="w-8 h-8 rounded-xl flex items-center justify-center text-gray-400 hover:text-[#2563EB] hover:bg-blue-50 transition-colors sm:opacity-0 group-hover:opacity-100"
               title="Change status"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/>
-              </svg>
+              <MoreVertical size={16} />
             </button>
 
             {showMenu && (
-              <div className="absolute right-0 top-full mt-1 w-44 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden animate-fadeIn">
-                <div className="px-3 py-2 border-b border-gray-100">
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Change Status</p>
+              <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden animate-in fade-in slide-in-from-top-2">
+                <div className="px-4 py-2.5 border-b border-gray-100 bg-gray-50/50">
+                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Override Status</p>
                 </div>
                 {statusOptions.map((opt) => (
                   <button
                     key={opt.value}
                     onClick={() => handleOverride(opt.value)}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-bold transition-colors ${opt.color} ${opt.bg} ${a.punctuality_status === opt.value ? 'bg-gray-50' : ''}`}
+                    className={`w-full flex items-center gap-3 px-4 py-2.5 text-xs font-bold transition-colors ${opt.color} ${opt.bg} ${a.punctuality_status === opt.value ? 'bg-gray-50' : ''}`}
                   >
                     {opt.icon}
                     {opt.label}
                     {a.punctuality_status === opt.value && (
-                      <span className="ml-auto text-[10px] text-gray-400">current</span>
+                      <span className="ml-auto text-[10px] text-gray-400 font-medium">current</span>
                     )}
                   </button>
                 ))}
-                <div className="border-t border-gray-100">
+                <div className="border-t border-gray-100 p-1">
                   <button
                     onClick={handleDelete}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-bold text-red-600 hover:bg-red-50 transition-colors"
+                    className="w-full flex items-center gap-3 px-3 py-2 text-xs font-bold text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                    <Trash2 size={14} />
                     Delete Record
                   </button>
                 </div>

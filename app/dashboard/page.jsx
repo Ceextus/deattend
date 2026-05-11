@@ -10,9 +10,11 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 
 export default function DashboardPage() {
   const [profile, setProfile] = useState(null);
-  const [stats, setStats] = useState({ totalMembers: 0, avgAttendance: 0, activeSessions: 0 });
+  const [stats, setStats] = useState({ totalMembers: 0, avgAttendance: 0, activeSessions: 0, thisMonth: 0 });
   const [recentSessions, setRecentSessions] = useState([]);
   const [sectionHealth, setSectionHealth] = useState([]);
+  const [attendanceTrend, setAttendanceTrend] = useState([]);
+  const [recentAbsences, setRecentAbsences] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -42,6 +44,14 @@ export default function DashboardPage() {
           .select('id', { count: 'exact', head: true })
           .eq('is_closed', false);
 
+        // This month's sessions
+        const now = new Date();
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+        const { count: thisMonthCount } = await supabase
+          .from('sessions')
+          .select('id', { count: 'exact', head: true })
+          .gte('session_date', monthStart);
+
         // Recent sessions
         const { data: sessions } = await supabase
           .from('sessions')
@@ -50,24 +60,86 @@ export default function DashboardPage() {
           .limit(3);
         setRecentSessions(sessions || []);
 
-        // Section health: count members per section
+        // All sessions + attendance for stats
+        const { data: allSessions } = await supabase
+          .from('sessions')
+          .select('id, session_date')
+          .order('session_date', { ascending: true });
+
+        const { data: allAttendance } = await supabase
+          .from('attendance')
+          .select('member_id, session_id');
+
+        // Section health: real attendance % per section
         const { data: allMembers } = await supabase
           .from('members')
-          .select('section')
+          .select('id, section')
           .eq('is_active', true);
 
+        const totalSessions = (allSessions || []).length;
+        const attSet = new Set((allAttendance || []).map(a => `${a.member_id}_${a.session_id}`));
+
         const sections = ['Soprano', 'Alto', 'Tenor', 'Bass'];
-        const health = sections.map((s) => ({
-          name: s,
-          count: (allMembers || []).filter((m) => m.section === s).length,
-          pct: Math.floor(Math.random() * 20 + 75), // placeholder until real calculation
-        }));
+        const health = sections.map((s) => {
+          const sMembers = (allMembers || []).filter((m) => m.section === s);
+          if (sMembers.length === 0 || totalSessions === 0) return { name: s, count: sMembers.length, pct: 0 };
+          let totalAtt = 0;
+          sMembers.forEach(m => {
+            (allSessions || []).forEach(sess => {
+              if (attSet.has(`${m.id}_${sess.id}`)) totalAtt++;
+            });
+          });
+          const pct = Math.round((totalAtt / (sMembers.length * totalSessions)) * 100);
+          return { name: s, count: sMembers.length, pct };
+        });
         setSectionHealth(health);
+
+        // Overall avg attendance
+        const totalPossible = (allMembers || []).length * totalSessions;
+        const avgAtt = totalPossible > 0 ? Math.round(((allAttendance || []).length / totalPossible) * 100) : 0;
+
+        // Monthly trend (last 6 months)
+        const trend = [];
+        for (let i = 5; i >= 0; i--) {
+          const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+          const mStart = d.toISOString().split('T')[0];
+          const mEnd = new Date(d.getFullYear(), d.getMonth() + 1, 0).toISOString().split('T')[0];
+          const mSessions = (allSessions || []).filter(s => s.session_date >= mStart && s.session_date <= mEnd);
+          if (mSessions.length === 0) {
+            trend.push({ month: d.toLocaleString('en-US', { month: 'short' }), attendance: 0 });
+            continue;
+          }
+          const mSessionIds = new Set(mSessions.map(s => s.id));
+          const mAtt = (allAttendance || []).filter(a => mSessionIds.has(a.session_id)).length;
+          const mPossible = (allMembers || []).length * mSessions.length;
+          trend.push({
+            month: d.toLocaleString('en-US', { month: 'short' }),
+            attendance: mPossible > 0 ? Math.round((mAtt / mPossible) * 100) : 0,
+          });
+        }
+        setAttendanceTrend(trend);
+
+        // Recent absences: members who missed the last closed session
+        const lastClosed = (allSessions || []).filter(s => sessions?.find(rs => rs.id === s.id && rs.is_closed)).slice(-1)[0];
+        if (lastClosed) {
+          const attendedIds = new Set((allAttendance || []).filter(a => a.session_id === lastClosed.id).map(a => a.member_id));
+          const absent = (allMembers || []).filter(m => !attendedIds.has(m.id)).slice(0, 5);
+          const lastSession = sessions?.find(s => s.id === lastClosed.id);
+          setRecentAbsences(absent.map(m => ({ name: m.id, memberName: 'Unknown', section: m.section, reason: `Missed ${lastSession?.name || 'session'}` })));
+          // Get names
+          if (absent.length > 0) {
+            const { data: absentMembers } = await supabase.from('members').select('id, name, section').in('id', absent.map(a => a.id));
+            if (absentMembers) {
+              setRecentAbsences(absentMembers.slice(0, 5).map(m => ({ name: m.name, section: m.section, reason: `Missed ${lastSession?.name || 'session'}` })));
+            }
+          }
+        }
 
         setStats({
           totalMembers: memberCount || 0,
-          avgAttendance: 87, // placeholder
+          avgAttendance: avgAtt,
           activeSessions: openSessions || 0,
+          thisMonth: thisMonthCount || 0,
         });
       } catch {
         // silent
@@ -97,25 +169,17 @@ export default function DashboardPage() {
   }
 
   return isSuperAdmin ? (
-    <SuperAdminView stats={stats} sectionHealth={sectionHealth} />
+    <SuperAdminView stats={stats} sectionHealth={sectionHealth} attendanceTrend={attendanceTrend} />
   ) : (
-    <AdminView firstName={firstName} stats={stats} recentSessions={recentSessions} sectionHealth={sectionHealth} />
+    <AdminView firstName={firstName} stats={stats} recentSessions={recentSessions} sectionHealth={sectionHealth} recentAbsences={recentAbsences} />
   );
 }
 
 /* ─────────────────────────────────────────────
    SUPER ADMIN DASHBOARD VIEW
    ───────────────────────────────────────────── */
-function SuperAdminView({ stats, sectionHealth }) {
-  // Mock data for the attendance trends chart
-  const attendanceData = [
-    { month: 'Jan', attendance: 65 },
-    { month: 'Feb', attendance: 72 },
-    { month: 'Mar', attendance: 68 },
-    { month: 'Apr', attendance: 85 },
-    { month: 'May', attendance: 82 },
-    { month: 'Jun', attendance: 90 },
-  ];
+function SuperAdminView({ stats, sectionHealth, attendanceTrend }) {
+  const attendanceData = attendanceTrend;
 
   // Colors for the pie chart
   const COLORS = ['#2563EB', '#8B5CF6', '#F59E0B', '#10B981'];
@@ -149,7 +213,7 @@ function SuperAdminView({ stats, sectionHealth }) {
         <StatCard icon="users" label="Total Members" value={stats.totalMembers.toLocaleString()} change="+12%" positive />
         <StatCard icon="chart" label="Avg. Attendance" value={`${stats.avgAttendance}%`} change="+5%" positive />
         <StatCard icon="sessions" label="Active Sessions" value={stats.activeSessions} change="— 0%" />
-        <StatCard icon="calendar" label="This Month" value="12" change="-2%" negative />
+        <StatCard icon="calendar" label="This Month" value={stats.thisMonth} />
       </div>
 
       {/* Two-column layout with charts */}
@@ -243,7 +307,7 @@ function SuperAdminView({ stats, sectionHealth }) {
 /* ─────────────────────────────────────────────
    ADMIN (ATTENDANCE OFFICER) DASHBOARD VIEW
    ───────────────────────────────────────────── */
-function AdminView({ firstName, stats, recentSessions, sectionHealth }) {
+function AdminView({ firstName, stats, recentSessions, sectionHealth, recentAbsences }) {
   return (
     <>
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
@@ -342,10 +406,13 @@ function AdminView({ firstName, stats, recentSessions, sectionHealth }) {
           </Link>
         </div>
         <div className="divide-y divide-gray-50">
-          {/* Placeholder absence rows */}
-          <AbsenceRow name="Michael Chang" section="Tenor" reason="Missed Wed Rehearsal" />
-          <AbsenceRow name="Elena Rodriguez" section="Soprano" reason="Missed Wed Rehearsal" />
-          <AbsenceRow name="David Okonkwo" section="Bass" reason="Missed Sunday Service" />
+          {recentAbsences.length > 0 ? (
+            recentAbsences.map((a, i) => (
+              <AbsenceRow key={i} name={a.name} section={a.section} reason={a.reason} />
+            ))
+          ) : (
+            <p className="text-sm text-gray-400 py-6 text-center">No recent absences to review.</p>
+          )}
         </div>
       </div>
     </>

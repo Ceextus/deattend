@@ -37,3 +37,83 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #94A3B8;
 }
+
+/* ============================================================
+   PRINT STYLES — Weekly Report PDF export
+   ============================================================ */
+@media print {
+  /* Hide everything that isn't the report */
+  aside,
+  header,
+  nav,
+  [data-print-hide],
+  .no-print {
+    display: none !important;
+  }
+
+  /* Reset the page layout so content fills the page */
+  body {
+    background: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Remove sidebar offset from the main content area */
+  main,
+  [class*="ml-"] {
+    margin-left: 0 !important;
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+
+  /* Show print-only elements */
+  [data-print-show] {
+    display: block !important;
+  }
+
+  /* Page settings */
+  @page {
+    size: landscape;
+    margin: 12mm 10mm;
+  }
+
+  /* Section break control */
+  .print-section {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    margin-bottom: 16px;
+  }
+
+  /* Table styling for print */
+  table {
+    font-size: 10px !important;
+    border-collapse: collapse;
+  }
+
+  th, td {
+    padding: 4px 6px !important;
+    border: 1px solid #e2e8f0;
+  }
+
+  thead tr {
+    background-color: #f1f5f9 !important;
+  }
+
+  /* Ensure check/x marks print clearly */
+  .bg-green-50 { background-color: transparent !important; }
+  .bg-red-50 { background-color: transparent !important; }
+
+  /* Eligible/Not Eligible badges */
+  .bg-green-50.text-green-600,
+  [class*="bg-green-50"][class*="text-green-600"] {
+    background-color: #f0fdf4 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  [class*="bg-red-50"][class*="text-red-500"] {
+    background-color: #fef2f2 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
