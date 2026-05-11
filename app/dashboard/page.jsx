@@ -157,11 +157,11 @@ export default function DashboardPage() {
     return (
       <div className="animate-pulse space-y-6">
         <div className="h-8 w-64 bg-gray-200 rounded-lg" />
-        <div className="grid grid-cols-4 gap-5">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
           {[1,2,3,4].map(i => <div key={i} className="h-28 bg-white rounded-xl" />)}
         </div>
-        <div className="grid grid-cols-3 gap-5">
-          <div className="col-span-2 h-64 bg-white rounded-xl" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          <div className="lg:col-span-2 h-64 bg-white rounded-xl" />
           <div className="h-64 bg-white rounded-xl" />
         </div>
       </div>
@@ -188,21 +188,17 @@ function SuperAdminView({ stats, sectionHealth, attendanceTrend }) {
     <>
       <Header
         title={
-          <span className="flex items-center gap-3">
-            Super Admin Dashboard
-            <span className="text-xs font-semibold bg-[#EFF6FF] text-[#2563EB] px-2.5 py-1 rounded-full border border-blue-100">Super Admin</span>
-          </span>
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            <span>Super Admin Dashboard</span>
+            <span className="text-[10px] sm:text-xs font-semibold bg-[#EFF6FF] text-[#2563EB] px-2.5 py-1 rounded-full border border-blue-100 whitespace-nowrap mt-1 sm:mt-0">Super Admin</span>
+          </div>
         }
         subtitle="System-wide overview, insights, and management."
       />
 
       {/* Action buttons */}
-      <div className="flex justify-end gap-3 -mt-4 mb-8">
-        <Link href="/reports" className="flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-200 shadow-sm text-sm font-medium text-gray-700 rounded-xl hover:bg-gray-50 hover:shadow transition-all">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Export Data
-        </Link>
-        <Link href="/members/new" className="flex items-center gap-2 px-5 py-2.5 bg-[#1E3A8A] shadow-md shadow-[#1E3A8A]/20 text-white text-sm font-medium rounded-xl hover:bg-[#172554] hover:shadow-lg transition-all transform hover:-translate-y-0.5">
+      <div className="flex flex-col sm:flex-row sm:justify-end gap-3 mt-4 sm:-mt-4 mb-8">
+        <Link href="/members/new" className="flex items-center justify-center sm:justify-start gap-2 px-5 py-2.5 bg-[#1E3A8A] shadow-md shadow-[#1E3A8A]/20 text-white text-sm font-medium rounded-xl hover:bg-[#172554] hover:shadow-lg transition-all transform hover:-translate-y-0.5 w-full sm:w-auto">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           New Member
         </Link>
@@ -286,7 +282,7 @@ function SuperAdminView({ stats, sectionHealth, attendanceTrend }) {
               </ResponsiveContainer>
             </div>
             
-            <div className="w-full grid grid-cols-2 gap-x-4 gap-y-3">
+            <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
               {sectionHealth.map((section, index) => (
                 <div key={section.name} className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }} />

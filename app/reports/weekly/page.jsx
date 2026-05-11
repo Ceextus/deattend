@@ -147,7 +147,7 @@ export default function WeeklyReportPage() {
           <h1 className="text-3xl font-bold text-[#1E293B] tracking-tight mb-1">Weekly Report</h1>
           <p className="text-[#64748B] text-sm">Rehearsal attendance overview and eligibility check.</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           {/* Eligibility Filter */}
           <div className="flex items-center bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
             {[
@@ -184,7 +184,7 @@ export default function WeeklyReportPage() {
       </div>
 
       {/* Week Navigator — hidden in print */}
-      <div className="flex items-center justify-between bg-white rounded-2xl border border-gray-100 shadow-sm px-6 py-4 mb-8 no-print">
+      <div className="flex flex-wrap items-center justify-between gap-4 bg-white rounded-2xl border border-gray-100 shadow-sm px-4 sm:px-6 py-4 mb-8 no-print">
         <button
           onClick={goToPrevWeek}
           className="p-2 rounded-xl text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors"
@@ -211,8 +211,8 @@ export default function WeeklyReportPage() {
           </div>
 
           {/* Week label */}
-          <div className="text-center hidden sm:block">
-            <p className="text-base font-bold text-gray-900">{weekRangeLabel(monday, sunday)}</p>
+          <div className="text-center hidden md:block">
+            <p className="text-base font-bold text-gray-900 whitespace-nowrap">{weekRangeLabel(monday, sunday)}</p>
           </div>
 
           {/* Today button */}
@@ -236,7 +236,7 @@ export default function WeeklyReportPage() {
       {/* ──── PRINT HEADER (only visible when printing) ──── */}
       <div className="hidden print:block print-header mb-6">
         <div className="text-center border-b-2 border-gray-900 pb-4 mb-4">
-          <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">ChoirFlow — Weekly Attendance Report</h1>
+          <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">St Francis Xavier Choir — Weekly Attendance Report</h1>
           <p className="text-sm text-gray-600 mt-1 font-semibold">{weekRangeLabel(monday, sunday)}</p>
           <p className="text-xs text-gray-400 mt-1">
             Generated on {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
@@ -272,7 +272,7 @@ export default function WeeklyReportPage() {
       ) : (
         <>
           {/* Stats Cards — hidden in print */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8 no-print">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8 no-print">
             <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm relative overflow-hidden z-0">
               <div className="absolute -top-4 -right-4 w-20 h-20 bg-[#F1F5F9] rounded-full -z-10" />
               <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Rehearsals</p>
@@ -390,7 +390,7 @@ export default function WeeklyReportPage() {
 
           {/* Print footer — only visible in print */}
           <div className="hidden print:block mt-8 pt-4 border-t border-gray-300 text-center text-[10px] text-gray-400">
-            <p>ChoirFlow Attendance System · {weekRangeLabel(monday, sunday)} · Eligibility Rule: {stats.requiredSessions}/{stats.totalSessions} rehearsals required</p>
+            <p>St Francis Xavier Choir - Attendance System · {weekRangeLabel(monday, sunday)} · Eligibility Rule: {stats.requiredSessions}/{stats.totalSessions} rehearsals required</p>
           </div>
         </>
       )}

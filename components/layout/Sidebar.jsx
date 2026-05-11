@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { Menu, X } from 'lucide-react';
 
 const ADMIN_NAV = [
   {
@@ -72,6 +73,7 @@ export default function Sidebar() {
   const pathname = usePathname();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   useEffect(() => {
     async function loadProfile() {
@@ -95,22 +97,65 @@ export default function Sidebar() {
     loadProfile();
   }, []);
 
+  // Close mobile sidebar on route change
+  useEffect(() => {
+    setIsMobileOpen(false);
+  }, [pathname]);
+
   const isSuperAdmin = profile?.role === 'super_admin';
   const navItems = isSuperAdmin ? SUPER_ADMIN_NAV : ADMIN_NAV;
   const roleLabel = isSuperAdmin ? 'Choir Management' : 'Attendance Officer';
 
   return (
-    <aside className="w-[220px] h-screen bg-white border-r border-gray-100 flex flex-col fixed left-0 top-0 z-30">
-      {/* Brand */}
-      <div className="px-5 pt-6 pb-4">
-        <div className="flex items-center gap-2.5 mb-0.5">
+    <>
+      {/* Mobile Top Header */}
+      <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 z-40">
+        <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 bg-[#2563EB] rounded-lg flex items-center justify-center text-white text-xs font-bold">
-            CF
+            SF
           </div>
-          <span className="font-bold text-[#1E3A8A] text-base tracking-tight">ChoirFlow</span>
+          <span className="font-bold text-[#1E3A8A] text-base tracking-tight">SFXC Abuja</span>
         </div>
-        <p className="text-[11px] text-[#76767D] ml-[42px] -mt-0.5">{roleLabel}</p>
+        <button
+          onClick={() => setIsMobileOpen(true)}
+          className="p-2 -mr-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
+        >
+          <Menu size={24} />
+        </button>
       </div>
+
+      {/* Mobile Overlay */}
+      {isMobileOpen && (
+        <div
+          className="md:hidden fixed inset-0 bg-gray-900/50 z-40 backdrop-blur-sm transition-opacity"
+          onClick={() => setIsMobileOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside
+        className={`w-[220px] h-screen bg-white border-r border-gray-100 flex flex-col fixed left-0 top-0 z-50 transform transition-transform duration-300 ease-in-out ${
+          isMobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+        }`}
+      >
+        {/* Brand */}
+        <div className="px-5 pt-6 pb-4 flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-2.5 mb-0.5">
+              <div className="w-8 h-8 bg-[#2563EB] rounded-lg flex items-center justify-center text-white text-xs font-bold">
+                SF
+              </div>
+              <span className="font-bold text-[#1E3A8A] text-base tracking-tight">SFXC Abuja</span>
+            </div>
+            <p className="text-[11px] text-[#76767D] ml-[42px] -mt-0.5">{roleLabel}</p>
+          </div>
+          <button
+            onClick={() => setIsMobileOpen(false)}
+            className="md:hidden p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 rounded-lg transition-colors"
+          >
+            <X size={20} />
+          </button>
+        </div>
 
       {/* Navigation */}
       <nav className="flex-1 px-3 mt-2 space-y-0.5 overflow-y-auto">
@@ -176,5 +221,6 @@ export default function Sidebar() {
         )}
       </div>
     </aside>
+    </>
   );
 }

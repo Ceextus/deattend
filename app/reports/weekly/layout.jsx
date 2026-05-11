@@ -1,5 +1,5 @@
 export const metadata = {
-  title: 'Weekly Report — ChoirFlow',
+  title: 'Weekly Report — SFXC',
 };
 
 export default function WeeklyReportLayout({ children }) {

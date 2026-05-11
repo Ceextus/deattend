@@ -163,7 +163,7 @@ export default function ReportsPage() {
           <h1 className="text-3xl font-bold text-[#1E293B] tracking-tight mb-1">Reports & Rankings</h1>
           <p className="text-[#64748B] text-sm">Member attendance performance for the selected period.</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           {/* Period selector */}
           <div className="relative group">
             <button className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-50 transition-all shadow-sm bg-white">
@@ -209,7 +209,7 @@ export default function ReportsPage() {
       {/* Print header */}
       <div className="hidden print:block mb-6">
         <div className="text-center border-b-2 border-gray-900 pb-4 mb-3">
-          <h1 className="text-2xl font-extrabold text-gray-900">ChoirFlow — Attendance Report</h1>
+          <h1 className="text-2xl font-extrabold text-gray-900">St Francis Xavier Choir — Attendance Report</h1>
           <p className="text-sm text-gray-600 mt-1 font-semibold">{periodLabel} · {sectionFilter || 'All Sections'}</p>
           <p className="text-xs text-gray-400 mt-1">Generated {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
         </div>
@@ -328,7 +328,7 @@ export default function ReportsPage() {
 
       {/* Print footer */}
       <div className="hidden print:block mt-8 pt-4 border-t border-gray-300 text-center text-[10px] text-gray-400">
-        <p>ChoirFlow Attendance System · {periodLabel} · {sessions.length} sessions · {filtered.length} members</p>
+        <p>St. Francis Xavier Choir Attendance System · {periodLabel} · {sessions.length} sessions · {filtered.length} members</p>
       </div>
     </>
   );

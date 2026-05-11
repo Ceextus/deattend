@@ -2,7 +2,7 @@
 import './globals.css';
 
 export const metadata = {
-  title: 'ChoirFlow',
+  title: 'St Francis Xavier Choir',
   description: 'Choir Attendance, Punctuality & Eligibility System',
 };
 

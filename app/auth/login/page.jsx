@@ -53,7 +53,7 @@ function LoginForm() {
               <circle cx="18" cy="16" r="3" />
             </svg>
           </div>
-          <span className="font-bold text-[#1E3A8A] tracking-tight text-lg">ChoirFlow</span>
+          <span className="font-bold text-[#1E3A8A] tracking-tight text-lg">St Francis Xavier Choir</span>
         </div>
 
         <div className="max-w-sm w-full mx-auto">
@@ -156,7 +156,7 @@ function LoginForm() {
             </h2>
             <div className="flex items-center gap-3">
               <div className="h-0.5 w-8 bg-[#6E2C00]"></div>
-              <p className="text-sm font-medium tracking-wide uppercase text-white/90">ChoirFlow Administration</p>
+              <p className="text-sm font-medium tracking-wide uppercase text-white/90">St Francis Xavier Choir Administration</p>
             </div>
           </div>
         </div>
